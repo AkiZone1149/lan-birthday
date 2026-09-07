@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お誕生日おめでとう</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            background: #ffffff;
+            overflow: hidden;
+            font-family: "Microsoft YaHei", sans-serif;
+            position: relative;
+        }
+        /* 左右礼物堆 */
+        .gift‑left, .gift‑right {
+            position: absolute;
+            top: 0;
+            height: 100vh;
+            width: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 20px 10px;
+            z-index: 5;
+        }
+        .gift‑left { left: 0; }
+        .gift‑right { right: 0; }
+        .gift‑item {
+            font-size: 45px;
+            opacity: 0.85;
+        }
+        /* 中间容器 */
+        .center-wrap {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 6;
+        }
+        /* 角色按钮容器 */
+        .char-btn-wrap {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+        .char-btn-wrap.hide {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.8);
+        }
+        .char-img {
+            width: 240px;
+            display: block;
+        }
+        .tip {
+            position: absolute;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            color: #d62858;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        /* 杰顿娘角色 */
+        .zetton‑char {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            z-index:15;
+            transition: all 0.8s ease;
+        }
+        .zetton‑char.show{
+            transform: translate(-50%, -50%) scale(1);
+            opacity:1;
+        }
+        .zetton‑img{
+            width:320px;
+        }
+        /* 烟花画布 */
+        #fireworks {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 10;
+        }
+        /* 消息字条 紫红色背景，不换行 */
+        .msg‑card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 20;
+            opacity: 0;
+            padding: 24px 40px;
+            background-color: #992288;
+            border-radius:16px;
+            box-shadow:0 4px 16px rgba(0,0,0,0.25);
+            transition: all 0.6s ease;
+            white-space: nowrap;
+        }
+        .msg‑card.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        .msg‑card.small-text {
+            font-size:32px;
+        }
+        .msg‑card span {
+            display:block;
+            white-space:nowrap;
+            margin:6px 0;
+            background: linear-gradient(90deg, #ffd700,#fff,#ff88dd,#88ddff);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fireworks"></canvas>
+
+    <!-- 左右礼物堆 -->
+    <div class="gift‑left">
+        <div class="gift‑item">🎁</div>
+        <div class="gift‑item">🎀</div>
+        <div class="gift‑item">🧸</div>
+        <div class="gift‑item">🎂</div>
+        <div class="gift‑item">🍬</div>
+    </div>
+    <div class="gift‑right">
+        <div class="gift‑item">🎁</div>
+        <div class="gift‑item">💝</div>
+        <div class="gift‑item">🍰</div>
+        <div class="gift‑item">🧁</div>
+        <div class="gift‑item">🎈</div>
+    </div>
+
+    <div class="center-wrap">
+        <div class="char-btn-wrap" id="charBtn">
+            <img class="char-img" src="https://i0.hdslb.com/bfs/new_dyn/6f1517eb69d414fa1e8b8f4128436d173546591638063542.jpg@1228w_1228h_1c.webp" alt="艾雷王娘">
+            <div class="tip">クリックしてください</div>
+        </div>
+    </div>
+
+    <!-- 杰顿娘角色 -->
+    <div class="zetton‑char" id="zettonChar">
+        <img class="zetton‑img" src="https://img2.baidu.com/it/u=3625435016,2692518561&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=968" alt="杰顿娘">
+    </div>
+
+    <!-- 字条容器 -->
+    <div class="msg‑card" id="msgCard">
+        <span id="msgText"></span>
+    </div>
+
+    <audio id="birthdayMusic" src="https://cdn.jsdelivr.net/gh/justforfun123/music/happy-birthday.mp3" preload="auto">
+
+    <script>
+        const canvas = document.getElementById('fireworks');
+        const ctx = canvas.getContext('2d');
+        const charBtn = document.getElementById('charBtn');
+        const msgCard = document.getElementById('msgCard');
+        const msgText = document.getElementById('msgText');
+        const zettonChar = document.getElementById('zettonChar');
+        const music = document.getElementById('birthdayMusic');
+
+        let w = canvas.width = window.innerWidth;
+        let h = canvas.height = window.innerHeight;
+        window.addEventListener('resize', ()=>{
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        });
+
+        let particles = [];
+        let isFireworkRunning = false;
+        let step = 0; // 0初始，1第一次点击，2第二次，3第三次
+
+        // 烟花粒子
+        class Particle {
+            constructor(x,y,color){
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.radius = Math.random()*4+2;
+                const speed = Math.random()*5+2;
+                const angle = Math.random()*Math.PI*2;
+                this.vx = Math.cos(angle)*speed;
+                this.vy = Math.sin(angle)*speed;
+                this.alpha = 1;
+                this.friction = 0.94;
+            }
+            update(){
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                this.vy += 0.12;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= 0.011;
+            }
+            draw(){
+                ctx.beginPath();
+                ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.alpha;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function createFirework(x,y,count=80){
+            const colors = ['#ff4d6d','#ff9e00','#9d4edd','#4cc9f0','#ffffff','#ffd60a','#ff88dd'];
+            for(let i=0;i<count;i++){
+                particles.push(new Particle(x,y,colors[Math.floor(Math.random()*colors.length)]));
+            }
+        }
+
+        function animate(){
+            if(!isFireworkRunning) return;
+            ctx.clearRect(0,0,w,h);
+            for(let i=particles.length-1;i>=0;i--){
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if(p.alpha <= 0){
+                    particles.splice(i,1);
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // 普通多处烟花
+        function startFireworks(){
+            isFireworkRunning = true;
+            particles = [];
+            createFirework(w*0.2, h*0.3);
+            createFirework(w*0.5, h*0.22);
+            createFirework(w*0.8, h*0.3);
+            createFirework(w*0.35, h*0.45);
+            createFirework(w*0.65, h*0.45);
+            animate();
+            setTimeout(()=>{
+                isFireworkRunning = false;
+                ctx.clearRect(0,0,w,h);
+            }, 4800);
+        }
+
+        // 全屏巨大炫彩烟花
+        function startBigFireworks(){
+            isFireworkRunning = true;
+            particles = [];
+            for(let i=0;i<12;i++){
+                let fx = Math.random()*w;
+                let fy = Math.random()*h;
+                createFirework(fx,fy,120);
+            }
+            animate();
+            setTimeout(()=>{
+                isFireworkRunning = false;
+                ctx.clearRect(0,0,w,h);
+            }, 7000);
+        }
+
+        // 更新按钮
+        function updateBtn(tipText){
+            charBtn.classList.remove('hide');
+            charBtn.querySelector('.tip').innerText = tipText;
+        }
+
+        // 显示字条
+        function showMsg(html, small=false){
+            msgCard.classList.add('show');
+            msgText.innerHTML = html;
+            if(small){
+                msgCard.classList.add('small-text');
+            }else{
+                msgCard.classList.remove('small-text');
+            }
+        }
+
+        charBtn.addEventListener('click',()=>{
+            charBtn.classList.add('hide');
+            music.currentTime = 0;
+            music.play().catch(e=>console.log("音乐需要点击交互"));
+
+            if(step === 0){
+                // 第一次点击
+                startFireworks();
+                showMsg(`<span>ランちゃん、お誕生日おめでとう🎉</span>`);
+                step = 1;
+                setTimeout(()=>{
+                    msgCard.classList.remove('show');
+                    setTimeout(()=>updateBtn("まだクリックするの？"),300);
+                },3000);
+            }else if(step === 1){
+                // 第二次点击
+                startFireworks();
+                showMsg(`<span>しょうがないなぁ，</span><span>それではランちゃん、毎日楽しく過ごせますように</span>`,true);
+                step = 2;
+                setTimeout(()=>{
+                    msgCard.classList.remove('show');
+                    setTimeout(()=>updateBtn("まだ？"),300);
+                },3000);
+            }else if(step === 2){
+                // 第三次点击
+                startFireworks();
+                showMsg(`<span>本当にもうないよ</span>`);
+                step = 3;
+                setTimeout(()=>{
+                    msgCard.classList.remove('show');
+                    // 出现杰顿娘
+                    zettonChar.classList.add('show');
+                    setTimeout(()=>{
+                        zettonChar.classList.remove('show');
+                        // 最后全屏四面八方大烟花
+                        startBigFireworks();
+                    },5000);
+                },3000);
+            }
+        });
+    </script>
+</body>
+</html>
