@@ -32,7 +32,7 @@
         .gift‑left { left: 0; }
         .gift‑right { right: 0; }
         .gift‑item {
-            font-size: 45px;
+            font-size: 25px;
             opacity: 0.85;
         }
         /* 中间容器 */
@@ -65,7 +65,7 @@
             bottom: -28px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 20px;
+            font-size: 15px;
             color: #d62858;
             font-weight: bold;
             white-space: nowrap;
@@ -103,7 +103,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            font-size: 42px;
+            font-size: 20px;
             font-weight: bold;
             text-align: center;
             z-index: 20;
@@ -120,7 +120,7 @@
             opacity: 1;
         }
         .msg‑card.small-text {
-            font-size:32px;
+            font-size:22px;
         }
         .msg‑card span {
             display:block;
@@ -305,16 +305,16 @@
                 setTimeout(()=>{
                     msgCard.classList.remove('show');
                     setTimeout(()=>updateBtn("まだクリックするの？"),300);
-                },3000);
+                },5000);
             }else if(step === 1){
                 // 第二次点击
                 startFireworks();
-                showMsg(`<span>しょうがないなぁ，</span><span>それではランちゃん、毎日楽しく過ごせますように</span>`,true);
+                showMsg(`<span>しょうがないなぁ，</span><span>それではランちゃん、</span><span>毎日楽しく過ごせますように</span>`,true);
                 step = 2;
                 setTimeout(()=>{
                     msgCard.classList.remove('show');
                     setTimeout(()=>updateBtn("まだ？"),300);
-                },3000);
+                },5000);
             }else if(step === 2){
                 // 第三次点击
                 startFireworks();
@@ -329,7 +329,7 @@
                         // 最后全屏四面八方大烟花
                         startBigFireworks();
                     },5000);
-                },3000);
+                },5000);
             }
         });
     </script>
